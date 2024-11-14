@@ -1,14 +1,56 @@
 import React from 'react';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Phone } from 'lucide-react';
 import { Link } from 'react-router-dom';
+
+const technicians = [
+    {
+        name: "Madan Kumar",
+        role: "Senior DTH Technician",
+        image: "https://lh3.googleusercontent.com/p/AF1QipODfToSbWNFQkvdYbGRfD-57AnPYNs6Qq6Iktc=s1360-w1360-h1020",
+        contact: "+91 939360 6147"
+    },
+    {
+        name: "Bharath Kumar",
+        role: "DTH Technician",
+        image: "https://lh3.googleusercontent.com/p/AF1QipPdjHyrQ4DEtZHDaQGuRrq5fI6EbVsefPeBtl7v=s1360-w1360-h1020",
+        contact: "+91 970126 6950"
+    }
+];
 
 export default function Hero() {
     return (
-        <div className="relative bg-white">
+        <div className="relative bg-gray-50">
             <div className="mx-auto max-w-7xl lg:grid lg:grid-cols-12 lg:gap-x-8 lg:px-8">
-                <div className="px-6 pb-24 pt-10 sm:pb-32 lg:col-span-7 lg:px-0 lg:pb-56 lg:pt-48 xl:col-span-6">
+                <div className="px-6 pb-24 pt-6 sm:pb-32 lg:col-span-7 lg:px-0 lg:pb-56 lg:pt-8 xl:col-span-6">
+                    {/* Technician Cards */}
+                    <div className="mb-8 lg:mb-12">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {technicians.map((tech, index) => (
+                                <div
+                                    key={index}
+                                    className="bg-white rounded-lg shadow-md p-4 flex items-center space-x-4"
+                                >
+                                    <img
+                                        src={tech.image}
+                                        alt={tech.name}
+                                        className="h-16 w-16 rounded-full object-cover lg:scale-125 lg:origin-center"
+                                    />
+                                    <div>
+                                        <h3 className="font-semibold text-gray-900">{tech.name}</h3>
+                                        <p className="text-sm text-gray-500">{tech.role}</p>
+                                        <div className="flex items-center text-sm text-indigo-600 mt-1">
+                                            <Phone className="h-4 w-4 mr-1" />
+                                            {tech.contact}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Main Content */}
                     <div className="mx-auto max-w-2xl lg:mx-0">
-                        <h1 className="mt-24 text-4xl font-bold tracking-tight text-gray-900 sm:mt-10 sm:text-6xl">
+                        <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">
                             Your One-Stop DTH Solution
                         </h1>
                         <p className="mt-6 text-lg leading-8 text-gray-600">
@@ -27,10 +69,12 @@ export default function Hero() {
                         </div>
                     </div>
                 </div>
+
+                {/* Right Side Image */}
                 <div className="relative lg:col-span-5 lg:-mr-8 xl:absolute xl:inset-0 xl:left-1/2 xl:mr-0">
                     <img
-                        className="aspect-[3/2] w-full bg-gray-50 object-cover lg:absolute lg:inset-0 lg:aspect-auto lg:h-full"
-                        src="https://www.kindpng.com/picc/m/578-5783558_dish-tv-logo-png-transparent-png.png"
+                        className="aspect-[3/2] w-full bg-gray-50 object-contain lg:absolute lg:inset-0 lg:aspect-auto lg:h-full"
+                        src="https://res.cloudinary.com/dra8tbz4z/image/upload/v1731565044/jgvbl8denrk4i1g4jl6h.png"
                         alt="Modern living room with TV setup"
                     />
                 </div>

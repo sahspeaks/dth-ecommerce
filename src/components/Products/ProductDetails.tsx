@@ -4,7 +4,6 @@ import { useCart } from '../../context/CartContext';
 import { ArrowLeft, ShoppingCart, Truck, CheckCircle, XCircle, Package } from 'lucide-react';
 import { mockProducts, ProductData } from './ProductsData';
 import type { Product } from '../../types';
-
 // Mock product database and pincode service remain the same
 
 // Define type for pincode service
@@ -29,10 +28,28 @@ const pincodeService = {
     } satisfies PincodeDeliveryDays
 };
 
+interface ProductApiResponse {
+    _id: string;
+    name: string;
+    description: string;
+    price: number;
+    category: {
+        _id: string;
+        name: string;
+    };
+    stock: number;
+    image: string;
+    addImages?: string[];
+    specifications?: string[];
+    features: string[];
+}
 
 export default function ProductDetails() {
     const { productId } = useParams<{ productId: string }>();
     const { category } = useParams<{ category: string }>();
+    const [categoryName, setCategoryName] = useState<string>('');
+
+
     console.log('Product ID:', productId);
     console.log('Category:', category);
 
@@ -49,14 +66,61 @@ export default function ProductDetails() {
     // const products = category ? mockProducts[category] : [];
     // const product = selectedProduct || products.find((p) => p.id === productId);
 
+    // State for managing current displayed image
+    const [currentImage, setCurrentImage] = useState<string>('');
+    const [productImages, setProductImages] = useState<string[]>([]);
+
+
     useEffect(() => {
-        // Find the product when component mounts or when productId/category changes
-        if (category && productId && mockProducts[category]) {
-            const product = mockProducts[category].find(p => p.id === productId);
-            setSelectedProduct(product || null);
+
+        // Fetch product details from the API
+        const fetchProductDetails = async () => {
+            try {
+                const response = await fetch(`http://localhost:9000/api/v1/product/${productId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                })
+                console.log('Response:', response);
+                const data: { product: ProductApiResponse } = await response.json();
+                const productData = data.product;
+                console.log('Response data:', productData);
+                setCategoryName(productData.category.name);
+                console.log('Category Name:', category);
+                setSelectedProduct({
+                    id: productData._id,
+                    name: productData.name,
+                    description: productData.description,
+                    price: productData.price,
+                    category: productData.category._id,
+                    stock: productData.stock,
+                    image: productData.image,
+                    addImages: productData.addImages || [],
+                    specifications: productData.specifications || [],
+                    features: productData.features,
+                });
+                const images = [productData.image, ...(productData.addImages || [])];
+                setProductImages(images);
+                setCurrentImage(images[0]);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                // setSelectedProduct(data);
+
+            } catch (error) {
+                console.error('Error fetching product details:', error);
+                throw error;
+            }
         }
+
+
+        fetchProductDetails();
     }, [category, productId]);
 
+    const handleImageClick = (image: string) => {
+        setCurrentImage(image);
+    };
 
     // Show loading state while finding the product
     if (!category || !productId) {
@@ -96,7 +160,7 @@ export default function ProductDetails() {
             <div className="flex flex-col items-center justify-center min-h-[400px]">
                 <h2 className="text-2xl font-semibold text-gray-900 mb-4">Product not found</h2>
                 <button
-                    onClick={() => navigate(`/categories/${category}`)}
+                    onClick={() => navigate(`/products/${category}`)}
                     className="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
                 >
                     <ArrowLeft className="h-5 w-5 mr-2" />
@@ -107,29 +171,34 @@ export default function ProductDetails() {
     }
 
 
-    // console.log('Selected Product:', product);
-    // if (!product) {
-    //     return (
-    //         <div className="flex flex-col items-center justify-center min-h-[400px]">
-    //             <h2 className="text-2xl font-semibold text-gray-900 mb-4">Product not found</h2>
-    //             <button
-    //                 onClick={() => navigate(-1)}
-    //                 className="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
-    //             >
-    //                 <ArrowLeft className="h-5 w-5 mr-2" />
-    //                 Go Back
-    //             </button>
-    //         </div>
-    //     );
-    // }
-
     const handleAddToCart = () => {
         addToCart({ ...selectedProduct }, quantity);
     };
 
     const handleBuyNow = () => {
-        addToCart({ ...selectedProduct }, quantity);
-        navigate('/checkout');
+        if (!selectedProduct) return;
+
+        // Prepare the cart summary data for a single product
+        const buyNowSummary = {
+            items: [{
+                id: selectedProduct.id,
+                name: selectedProduct.name,
+                quantity: quantity,
+                price: selectedProduct.price,
+                image: selectedProduct.image,
+                subtotal: selectedProduct.price * quantity
+            }],
+            totalAmount: selectedProduct.price * quantity,
+            itemCount: quantity
+        };
+
+        // Navigate to checkout with the buy now data
+        navigate('/checkout', {
+            state: {
+                cartSummary: buyNowSummary,
+                isBuyNow: true // Flag to indicate this is a buy now purchase
+            }
+        });
     };
 
     const checkAvailability = () => {
@@ -156,8 +225,8 @@ export default function ProductDetails() {
                 <div className="flex items-center space-x-2 text-sm text-gray-500 mb-6">
                     <button onClick={() => navigate('/')} className="hover:text-gray-900">Home</button>
                     <span>/</span>
-                    <button onClick={() => navigate(`/products/${selectedProduct.category}`)} className="hover:text-gray-900 capitalize">
-                        {selectedProduct.category}
+                    <button onClick={() => navigate(`/products/${category}`)} className="hover:text-gray-900 capitalize">
+                        {category}
                     </button>
                     <span>/</span>
                     <span className="text-gray-900">{selectedProduct.name}</span>
@@ -165,12 +234,35 @@ export default function ProductDetails() {
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     <div className="space-y-4">
-                        <div className="overflow-hidden rounded-md shadow">
+                        {/* main image */}
+                        <div className="overflow-hidden rounded-lg shadow-lg">
                             <img
-                                src={selectedProduct.image}
+                                src={currentImage || selectedProduct.image}
                                 alt={selectedProduct.name}
                                 className="w-full h-[400px] object-cover"
                             />
+                        </div>
+                        {/* Thumbnail Preview Gallery */}
+                        <div className="grid grid-cols-4 gap-4">
+                            {productImages.map((image, index) => (
+                                <button
+                                    key={index}
+                                    onClick={() => handleImageClick(image)}
+                                    className={`relative overflow-hidden rounded-lg border-2 transition-all 
+                                        ${currentImage === image
+                                            ? 'border-blue-500 shadow-md'
+                                            : 'border-gray-200 hover:border-blue-300'
+                                        }`}
+                                >
+                                    <div className="aspect-square">
+                                        <img
+                                            src={image}
+                                            alt={`Product view ${index + 1}`}
+                                            className="w-full h-full object-contain p-2"
+                                        />
+                                    </div>
+                                </button>
+                            ))}
                         </div>
                     </div>
 
@@ -286,15 +378,15 @@ export default function ProductDetails() {
                                     ))}
                                 </div>
                             </div>
-                            {/* <div className="py-4">
+                            <div className="py-4">
                                 {activeTab === 'description' && (
-                                    <p className="text-gray-700 whitespace-pre-line">{product.description}</p>
+                                    <p className="text-gray-700 whitespace-pre-line">{selectedProduct.description}</p>
                                 )}
                                 {activeTab === 'specifications' && (
                                     <dl className="space-y-4">
-                                        {Object.entries(product.specifications).map(([key, value]) => (
+                                        {Object.entries(selectedProduct.specifications).map(([key, value]) => (
                                             <div key={key} className="flex">
-                                                <dt className="w-1/3 text-gray-500">{key}</dt>
+
                                                 <dd className="w-2/3 text-gray-700">{value}</dd>
                                             </div>
                                         ))}
@@ -302,12 +394,12 @@ export default function ProductDetails() {
                                 )}
                                 {activeTab === 'features' && (
                                     <ul className="list-disc list-inside text-gray-700 space-y-1">
-                                        {product.features.map((feature, index) => (
+                                        {selectedProduct.features.map((feature, index) => (
                                             <li key={index}>{feature}</li>
                                         ))}
                                     </ul>
                                 )}
-                            </div> */}
+                            </div>
                         </div>
                     </div>
                 </div>

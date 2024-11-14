@@ -1,140 +1,160 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Product } from '../types';
+import { useAuth } from './AuthContext';
+import type { Product } from '../types';
 
-// Define CartItem type here to ensure consistency
-export interface CartItem extends Product {
+// Type definitions
+interface CartItem extends Product {
     quantity: number;
+}
+
+interface CartState {
+    items: CartItem[];
+    total: number;
 }
 
 interface CartContextType {
     items: CartItem[];
-    addToCart: (product: Product, quantity: number) => void;
+    addToCart: (product: Product, quantity?: number) => void;
     removeFromCart: (productId: string) => void;
     updateQuantity: (productId: string, quantity: number) => void;
     clearCart: () => void;
     total: number;
-    itemCount: number;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
+const calculateTotal = (items: CartItem[]): number => {
+    return items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+};
+
+// Helper function to get storage key for a user
+const getStorageKey = (userId: string | undefined) => {
+    return userId ? `cart_${userId}` : 'anonymous_cart';
+};
+
 export function CartProvider({ children }: { children: React.ReactNode }) {
-    const [items, setItems] = useState<CartItem[]>(() => {
-        // Initialize cart from localStorage
-        const storedCart = localStorage.getItem('cart');
-        return storedCart ? JSON.parse(storedCart) : [];
-    });
+    const { user } = useAuth();
+    console.log('User ID:', user?.email);
 
-    // Save to localStorage whenever cart changes
+    const [carts, setCarts] = useState<Record<string, CartState>>({});
+    const [currentCart, setCurrentCart] = useState<CartState>({ items: [], total: 0 });
+
+    // Load all carts from localStorage on mount
     useEffect(() => {
-        localStorage.setItem('cart', JSON.stringify(items));
-    }, [items]);
+        const loadedCarts: Record<string, CartState> = {};
+        // Get all keys from localStorage
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith('cart_')) {
+                try {
+                    const cartData = localStorage.getItem(key);
+                    if (cartData) {
+                        loadedCarts[key] = JSON.parse(cartData);
+                    }
+                } catch (error) {
+                    console.error('Error loading cart:', error);
+                }
+            }
+        }
+        setCarts(loadedCarts);
+    }, []);
 
-    const addToCart = (product: Product, quantity: number) => {
-        if (quantity < 1) return;
+    // Switch cart when user changes
+    useEffect(() => {
+        const storageKey = getStorageKey(user?.email);
+        const savedCart = carts[storageKey] || { items: [], total: 0 };
+        setCurrentCart(savedCart);
+    }, [user, carts]);
 
-        setItems(prevItems => {
-            const existingItemIndex = prevItems.findIndex(item => item.id === product.id);
+    // Save cart to localStorage whenever it changes
+    const saveCart = (cartState: CartState) => {
+        const storageKey = getStorageKey(user?.email);
+        try {
+            localStorage.setItem(storageKey, JSON.stringify(cartState));
+            setCarts(prev => ({
+                ...prev,
+                [storageKey]: cartState
+            }));
+        } catch (error) {
+            console.error('Error saving cart:', error);
+        }
+    };
 
-            if (existingItemIndex >= 0) {
-                // Update existing item
-                const updatedItems = [...prevItems];
-                const newQuantity = updatedItems[existingItemIndex].quantity + quantity;
+    const addToCart = (product: Product, quantity: number = 1) => {
+        setCurrentCart(prevCart => {
+            const existingItem = prevCart.items.find(item => item.id === product.id);
+            let newItems;
 
-                // Optional: Check against product stock
-                // if (newQuantity > product.stock) return prevItems;
-
-                updatedItems[existingItemIndex] = {
-                    ...updatedItems[existingItemIndex],
-                    quantity: newQuantity
-                };
-                return updatedItems;
+            if (existingItem) {
+                newItems = prevCart.items.map(item =>
+                    item.id === product.id
+                        ? { ...item, quantity: item.quantity + quantity }
+                        : item
+                );
+            } else {
+                newItems = [...prevCart.items, { ...product, quantity }];
             }
 
-            // Add new item
-            return [...prevItems, { ...product, quantity }];
+            const newCart = {
+                items: newItems,
+                total: calculateTotal(newItems)
+            };
+
+            saveCart(newCart);
+            return newCart;
         });
     };
 
     const removeFromCart = (productId: string) => {
-        setItems(prevItems => prevItems.filter(item => item.id !== productId));
+        setCurrentCart(prevCart => {
+            const newItems = prevCart.items.filter(item => item.id !== productId);
+            const newCart = {
+                items: newItems,
+                total: calculateTotal(newItems)
+            };
+
+            saveCart(newCart);
+            return newCart;
+        });
     };
 
-    const updateQuantity = (productId: string, newQuantity: number) => {
-        if (newQuantity < 1) return;
+    const updateQuantity = (productId: string, quantity: number) => {
+        if (quantity < 0) return;
 
-        setItems(prevItems => {
-            const existingItemIndex = prevItems.findIndex(item => item.id === productId);
+        setCurrentCart(prevCart => {
+            const newItems = quantity === 0
+                ? prevCart.items.filter(item => item.id !== productId)
+                : prevCart.items.map(item =>
+                    item.id === productId
+                        ? { ...item, quantity }
+                        : item
+                );
 
-            if (existingItemIndex === -1) return prevItems;
-
-            // Optional: Check against product stock
-            // if (newQuantity > prevItems[existingItemIndex].stock) return prevItems;
-
-            const updatedItems = [...prevItems];
-            updatedItems[existingItemIndex] = {
-                ...updatedItems[existingItemIndex],
-                quantity: newQuantity
+            const newCart = {
+                items: newItems,
+                total: calculateTotal(newItems)
             };
-            return updatedItems;
+
+            saveCart(newCart);
+            return newCart;
         });
     };
 
     const clearCart = () => {
-        setItems([]);
-    };
-
-    // Computed values
-    const total = items.reduce(
-        (sum, item) => sum + item.price * item.quantity,
-        0
-    );
-
-    const itemCount = items.reduce(
-        (count, item) => count + item.quantity,
-        0
-    );
-
-    // Error boundary for cart operations
-    const safeCartOperations = {
-        addToCart: (product: Product, quantity: number) => {
-            try {
-                addToCart(product, quantity);
-            } catch (error) {
-                console.error('Failed to add item to cart:', error);
-                // Optionally implement error handling/notification
-            }
-        },
-        removeFromCart: (productId: string) => {
-            try {
-                removeFromCart(productId);
-            } catch (error) {
-                console.error('Failed to remove item from cart:', error);
-            }
-        },
-        updateQuantity: (productId: string, quantity: number) => {
-            try {
-                updateQuantity(productId, quantity);
-            } catch (error) {
-                console.error('Failed to update cart quantity:', error);
-            }
-        },
-        clearCart: () => {
-            try {
-                clearCart();
-            } catch (error) {
-                console.error('Failed to clear cart:', error);
-            }
-        }
+        const newCart = { items: [], total: 0 };
+        setCurrentCart(newCart);
+        saveCart(newCart);
     };
 
     return (
         <CartContext.Provider
             value={{
-                items,
-                total,
-                itemCount,
-                ...safeCartOperations
+                items: currentCart.items,
+                total: currentCart.total,
+                addToCart,
+                removeFromCart,
+                updateQuantity,
+                clearCart,
             }}
         >
             {children}

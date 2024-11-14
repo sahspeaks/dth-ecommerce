@@ -9,8 +9,9 @@ export interface ProductData extends Product {
     category: string;
     stock: number;
     image: string;
-    // specifications: Record<string, string>;
-    // features: string[];
+    addImages: string[];
+    specifications: string[];
+    features: string[];
 }
 
 export const mockProducts: Record<string, ProductData[]> = {
@@ -22,21 +23,27 @@ export const mockProducts: Record<string, ProductData[]> = {
             price: 2499,
             category: 'dth',
             stock: 50,
-            image: 'https://images.unsplash.com/photo-1540821924489-7690c70c4eac?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300&q=80',
-            // specifications: {
-            //     'Resolution': '1080p Full HD',
-            //     'Storage': '500GB HDD',
-            //     'Connectivity': 'HDMI, USB',
-            //     'Power': 'DC 12V',
-            //     'Warranty': '1 Year',
-            // },
-            // features: [
-            //     'Live TV Recording',
-            //     'Pause & Rewind Live TV',
-            //     'Program Guide',
-            //     'Parental Control',
-            //     'Multi-language Support'
-            // ]
+            image:'https://m.media-amazon.com/images/I/51Dg-JMAuES._AC_UF1000,1000_QL80_.jpg', 
+            addImages: [
+                'https://www.gizbot.com/img/1200x90x675/img/gadget-finder/featured-image/dish-tv-channel-list-1660201466.png',
+                'https://admin.indiantelevision.com/sites/default/files/styles/smartcrop_800x800/public/images/tv-images/2016/06/01/dishtv.jpg?itok=gc0fiyRn',
+            ]
+            ,
+            specifications: [
+                
+                'Resolution: 1080p Full HD',
+                'Storage: 500GB HDD',
+                'Connectivity: HDMI, USB',
+                'Power: DC 12V',
+                'Warranty: 1 Year',
+            ],
+            features: [
+                'Live TV Recording',
+                'Pause & Rewind Live TV',
+                'Program Guide',
+                'Parental Control',
+                'Multi-language Support'
+            ]
         },
         {
             id: '2',
@@ -46,6 +53,24 @@ export const mockProducts: Record<string, ProductData[]> = {
             category: 'dth',
             stock: 30,
             image: 'https://images.unsplash.com/photo-1532619675605-1ede6c2ed2b0?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300&q=80',
+            addImages: [
+                'https://images.unsplash.com/photo-1540821924489-7690c70c4eac?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300&q=80',
+                'https://images.unsplash.com/photo-154082']
+            ,
+            specifications: [
+                'Resolution: 1080p Full HD',
+                'Storage: 500GB HDD',
+                'Connectivity: HDMI, USB',
+                'Power: DC 12V',
+                'Warranty: 1 Year',
+            ],
+            features: [
+                'Live TV Recording',
+                'Pause & Rewind Live TV',
+                'Program Guide',
+                'Parental Control',
+                'Multi-language Support'
+            ]
         },
     ],
     networking: [
@@ -57,6 +82,24 @@ export const mockProducts: Record<string, ProductData[]> = {
             category: 'networking',
             stock: 25,
             image: 'https://images.unsplash.com/photo-1544408945-2ed27873c8c5?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300&q=80',
+            addImages: [
+                'https://images.unsplash.com/photo-1540821924489-7690c70c4eac?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300&q=80',
+                'https://images.unsplash.com/photo-154082']
+            ,
+            specifications: [
+                'Resolution: 1080p Full HD',
+                'Storage: 500GB HDD',
+                'Connectivity: HDMI, USB',
+                'Power: DC 12V',
+                'Warranty: 1 Year',
+            ],
+            features: [
+                'Live TV Recording',
+                'Pause & Rewind Live TV',
+                'Program Guide',
+                'Parental Control',
+                'Multi-language Support'
+            ]
         },
         {
             id: '4',
@@ -66,6 +109,24 @@ export const mockProducts: Record<string, ProductData[]> = {
             category: 'networking',
             stock: 100,
             image: 'https://images.unsplash.com/photo-1551498406-76c7c4a51c93?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300&q=80',
+            addImages: [
+                'https://images.unsplash.com/photo-1540821924489-7690c70c4eac?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300&q=80',
+                'https://images.unsplash.com/photo-154082']
+            ,
+            specifications: [
+                'Resolution: 1080p Full HD',
+                'Storage: 500GB HDD',
+                'Connectivity: HDMI, USB',
+                'Power: DC 12V',
+                'Warranty: 1 Year',
+            ],
+            features: [
+                'Live TV Recording',
+                'Pause & Rewind Live TV',
+                'Program Guide',
+                'Parental Control',
+                'Multi-language Support'
+            ]
         },
     ],
     accessories: [
@@ -77,6 +138,24 @@ export const mockProducts: Record<string, ProductData[]> = {
             category: 'accessories',
             stock: 200,
             image: 'https://images.unsplash.com/photo-1624996379697-f01d168b1a52?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300&q=80',
+            addImages: [
+                'https://images.unsplash.com/photo-1540821924489-7690c70c4eac?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300&q=80',
+                'https://images.unsplash.com/photo-154082']
+            ,
+            specifications: [
+                'Resolution: 1080p Full HD',
+                'Storage: 500GB HDD',
+                'Connectivity: HDMI, USB',
+                'Power: DC 12V',
+                'Warranty: 1 Year',
+            ],
+            features: [
+                'Live TV Recording',
+                'Pause & Rewind Live TV',
+                'Program Guide',
+                'Parental Control',
+                'Multi-language Support'
+            ]
         },
         {
             id: '6',
@@ -86,6 +165,24 @@ export const mockProducts: Record<string, ProductData[]> = {
             category: 'accessories',
             stock: 150,
             image: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300&q=80',
+            addImages: [
+                'https://images.unsplash.com/photo-1540821924489-7690c70c4eac?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300&q=80',
+                'https://images.unsplash.com/photo-154082']
+            ,
+            specifications: [
+                'Resolution: 1080p Full HD',
+                'Storage: 500GB HDD',
+                'Connectivity: HDMI, USB',
+                'Power: DC 12V',
+                'Warranty: 1 Year',
+            ],
+            features: [
+                'Live TV Recording',
+                'Pause & Rewind Live TV',
+                'Program Guide',
+                'Parental Control',
+                'Multi-language Support'
+            ]
         },
     ],
 };

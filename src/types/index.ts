@@ -6,8 +6,9 @@ export interface Product {
     category: string;
     stock: number;
     image: string;
-    // specifications: Record<string, string>;
-    // features: string[];
+    addImages: string[];
+    specifications: string[];
+    features: string[];
   }
   
   export interface Service {

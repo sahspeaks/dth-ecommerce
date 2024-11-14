@@ -11,7 +11,8 @@ import Hero from './components/Hero';
 import ServiceBooking from './components/ServiceBooking';
 import ProductDetails from './components/Products/ProductDetails';
 import UserProfile from './components/UserProfile';
-
+import CheckoutPage from './components/Cart/CheckoutPage';
+import ProductCatalog from './components/Products/ProductCatalog';
 // ProtectedRoute Component remains the same
 const ProtectedRoute = ({ children, requireAdmin = false }: { children: React.ReactNode, requireAdmin?: boolean }) => {
   const { user, isLoading } = useAuth();
@@ -56,6 +57,7 @@ export default function App() {
               element={
                 <Layout fullWidth>
                   <Hero />
+                  <ProductCatalog />
                 </Layout>
               }
             />
@@ -104,6 +106,17 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/checkout"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <CheckoutPage />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+
 
             <Route
               path="/services"
