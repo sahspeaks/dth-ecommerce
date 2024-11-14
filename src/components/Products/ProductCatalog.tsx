@@ -25,12 +25,14 @@ interface ProductCategoryData {
 const ProductCatalog = () => {
     const [productCategories, setProductCategories] = useState<ProductCategoryData>({});
 
+    const BASE_URL = 'http://localhost:9000';
+
     useEffect(() => {
         console.log('Fetching product categories...');
 
         const fetchProductCategories = async () => {
             try {
-                const response = await fetch('http://localhost:9000/api/v1/categories');
+                const response = await fetch(`${BASE_URL}/api/v1/categories`);
                 if (!response.ok) {
                     throw new Error(`HTTP error ${response.status}`);
                 }
@@ -40,7 +42,7 @@ const ProductCatalog = () => {
                 const categoryProducts: ProductCategoryData = {};
                 for (const category of categories) {
                     console.log('Fetching products for category:', category);
-                    const productResponse = await fetch(`http://localhost:9000/api/v1/products/${category._id}`);
+                    const productResponse = await fetch(`${BASE_URL}/api/v1/products/${category._id}`);
                     console.log('Fetching category response:', productResponse);
 
                     if (!productResponse.ok) {

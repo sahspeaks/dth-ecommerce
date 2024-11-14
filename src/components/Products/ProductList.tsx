@@ -35,6 +35,8 @@ export default function ProductList() {
     const [error, setError] = useState<string | null>(null);
     const [categories, setCategories] = useState<Record<string, string>>({});
 
+    const BASE_URL = 'http://localhost:9000';
+
     const handleAddToCart = (product: ProductData) => {
         addToCart(product, 1);
     };
@@ -47,7 +49,7 @@ export default function ProductList() {
     useEffect(() => {
         const fetchCategories = async () => {
             try {
-                const response = await fetch('http://localhost:9000/api/v1/categories', {
+                const response = await fetch(`${BASE_URL}/api/v1/categories`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -103,7 +105,7 @@ export default function ProductList() {
             }
 
             try {
-                const response = await fetch(`http://localhost:9000/api/v1/products/${categories[categoryKey]}`,
+                const response = await fetch(`${BASE_URL}/api/v1/products/${categories[categoryKey]}`,
                     {
                         method: 'GET',
                         headers: {

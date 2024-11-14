@@ -21,11 +21,13 @@ export interface Product {
   }
 
   export interface User {
-    id: string;
+    _id: string;
     email: string;
-    name: string;
-    role: 'admin' | 'user';
-    createdAt: string;
+    username: string;
+    phone: string;
+    address: string;
+    avatar: string;
+    role: 'admin' | 'customer';
   }
   
   export interface CartItem extends Product {

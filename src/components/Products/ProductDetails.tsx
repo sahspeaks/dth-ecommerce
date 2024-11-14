@@ -63,12 +63,12 @@ export default function ProductDetails() {
     const [quantity, setQuantity] = useState(1);
     const [activeTab, setActiveTab] = useState<'description' | 'specifications' | 'features'>('description');
 
-    // const products = category ? mockProducts[category] : [];
-    // const product = selectedProduct || products.find((p) => p.id === productId);
 
     // State for managing current displayed image
     const [currentImage, setCurrentImage] = useState<string>('');
     const [productImages, setProductImages] = useState<string[]>([]);
+
+    const BASE_URL = 'http://localhost:9000';
 
 
     useEffect(() => {
@@ -76,7 +76,7 @@ export default function ProductDetails() {
         // Fetch product details from the API
         const fetchProductDetails = async () => {
             try {
-                const response = await fetch(`http://localhost:9000/api/v1/product/${productId}`, {
+                const response = await fetch(`${BASE_URL}/api/v1/product/${productId}`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
