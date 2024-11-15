@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { User, Mail, Phone, MapPin, Edit2, Save, X, Image } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import OrdersSection from './OrdersSection';
 
 const UserProfile = () => {
     const { user, updateUser } = useAuth();
@@ -154,6 +155,7 @@ const UserProfile = () => {
                     </form>
                 </div>
             </div>
+            <OrdersSection customerId={user?._id} />
             {/* Account Settings Section */}
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
                 <div className="p-6">
@@ -186,3 +188,5 @@ const UserProfile = () => {
 };
 
 export default UserProfile;
+
+

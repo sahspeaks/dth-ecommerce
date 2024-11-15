@@ -22,6 +22,7 @@ interface AuthResponse {
 interface AuthContextType {
     user: User | null;
     login: (email: string, password: string) => Promise<void>;
+    signup: (username: string, email: string, password: string, phone: string) => Promise<void>;
     logout: () => void;
     isLoading: boolean;
     updateUser: (updates: UpdateUserData) => Promise<void>;
@@ -88,6 +89,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } catch (error) {
             console.error('Login error:', error);
             throw error instanceof Error ? error : new Error('Login failed');
+        }
+    };
+
+    const signup = async (username: string, email: string, password: string, phone: string): Promise<void> => {
+        try {
+            const response = await fetch(`${BASE_URL}/api/v1/customer/signup`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username, email, password, phone }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Signup failed');
+            }
+
+            const data: AuthResponse = await response.json();
+
+            setAccessToken(data.accessToken);
+            setRefreshToken(data.refreshToken);
+            setUser(data.customer);
+
+            localStorage.setItem('accessToken', data.accessToken);
+            localStorage.setItem('refreshToken', data.refreshToken);
+            localStorage.setItem('user', JSON.stringify(data.customer));
+        } catch (error) {
+            console.error('Signup error:', error);
+            throw error instanceof Error ? error : new Error('Signup failed');
         }
     };
 
@@ -190,6 +221,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const value: AuthContextType = {
         user,
         login,
+        signup,
         logout,
         isLoading,
         updateUser,

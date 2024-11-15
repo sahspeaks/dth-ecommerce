@@ -1,7 +1,9 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
 import { useState } from "react";
-import { MapPin, Package, Truck } from "lucide-react";
+import { MapPin, Package, Truck, Loader2, AlertCircle } from "lucide-react";
+import { useAuth } from '../../context/AuthContext';
+
 
 interface BaseItem {
     id: string | number;
@@ -27,10 +29,22 @@ interface DeliveryAddress {
     landmark: string;
 }
 
+interface ApiError {
+    message: string;
+    error?: string;
+}
+
 export default function CheckoutPage() {
+    const { user, updateUser } = useAuth();
+    console.log(user);
+    console.log(user?.username)
+
     const location = useLocation();
     const navigate = useNavigate();
     const { items: cartItems, total: cartTotal, clearCart } = useCart();
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const BASE_URL = 'http://localhost:9000'
 
     const [deliveryAddress, setDeliveryAddress] = useState<DeliveryAddress>({
         fullName: '',
@@ -64,45 +78,115 @@ export default function CheckoutPage() {
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
+        setError(null);
         setDeliveryAddress(prev => ({
             ...prev,
             [name]: value
         }));
     };
 
+    const validateForm = () => {
+        if (!/^\d{10}$/.test(deliveryAddress.phone)) {
+            setError('Please enter a valid 10-digit phone number');
+            return false;
+        }
+
+        if (!/^\d{6}$/.test(deliveryAddress.pincode)) {
+            setError('Please enter a valid 6-digit PIN code');
+            return false;
+        }
+
+        if (!/\S+@\S+\.\S+/.test(deliveryAddress.email)) {
+            setError('Please enter a valid email address');
+            return false;
+        }
+
+        return true;
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
+        console.log(user?.username);
         e.preventDefault();
+        setError(null);
+
+        if (!validateForm()) {
+            return;
+        }
+
+        setIsLoading(true);
 
         try {
-            const response = await fetch('your-api-endpoint/orders', {
+            const response = await fetch(`${BASE_URL}/api/v1/create-order`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+                },
                 body: JSON.stringify({
                     orderItems: checkoutItems.map(item => ({
                         productId: item.id,
+                        productName: item.name,
                         quantity: item.quantity,
                         price: item.price
                     })),
                     deliveryAddress,
+                    customerId: user?._id,
+                    customerName: user?.username,
                     totalAmount,
                     shippingCost: 499,
                     orderType: navigationState?.isBuyNow ? 'BUY_NOW' : 'CART_CHECKOUT'
                 })
             });
 
-            if (!response.ok) throw new Error('Failed to place order');
+            const data = await response.json();
+            console.log(data)
 
-            const orderConfirmation = await response.json();
-            if (!navigationState?.isBuyNow) clearCart();
-            navigate(`/order-confirmation/${orderConfirmation.orderId}`);
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to place order');
+            }
+
+            if (!navigationState?.isBuyNow) {
+                clearCart();
+            }
+
+            navigate(`/order-confirmation/${data.orderId}`, {
+                state: { orderDetails: data }
+            });
+
         } catch (error) {
-            console.error('Error placing order:', error);
+            const err = error as ApiError;
+            setError(err.message || 'An error occurred while placing your order. Please try again.');
+        } finally {
+            setIsLoading(false);
         }
     };
+
+    if (!navigationState?.isBuyNow && checkoutItems.length === 0) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                <div className="text-center">
+                    <h2 className="text-xl font-semibold text-gray-900">Your cart is empty</h2>
+                    <button
+                        onClick={() => navigate('/products')}
+                        className="mt-4 bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors"
+                    >
+                        Continue Shopping
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gray-50 py-8">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                {error && (
+                    <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-700">
+                        <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                        <p>{error}</p>
+                    </div>
+                )}
+
                 <div className="flex flex-col lg:flex-row gap-8">
                     {/* Order Summary Section */}
                     <div className="lg:w-2/5">
@@ -115,11 +199,17 @@ export default function CheckoutPage() {
                             <div className="space-y-4">
                                 {checkoutItems.map(item => (
                                     <div key={item.id} className="flex gap-4 py-4 border-b">
-                                        <img
-                                            src={item.image}
-                                            alt={item.name}
-                                            className="w-20 h-20 object-cover rounded-md"
-                                        />
+                                        {item.image ? (
+                                            <img
+                                                src={item.image}
+                                                alt={item.name}
+                                                className="w-20 h-20 object-cover rounded-md"
+                                            />
+                                        ) : (
+                                            <div className="w-20 h-20 bg-gray-200 rounded-md flex items-center justify-center">
+                                                <Package className="w-8 h-8 text-gray-400" />
+                                            </div>
+                                        )}
                                         <div className="flex-1">
                                             <h3 className="font-medium text-gray-900">{item.name}</h3>
                                             <p className="text-gray-500">Quantity: {item.quantity}</p>
@@ -166,7 +256,7 @@ export default function CheckoutPage() {
                                             required
                                             value={deliveryAddress.fullName}
                                             onChange={handleInputChange}
-                                            className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                         />
                                     </div>
 
@@ -180,7 +270,7 @@ export default function CheckoutPage() {
                                             required
                                             value={deliveryAddress.email}
                                             onChange={handleInputChange}
-                                            className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                         />
                                     </div>
 
@@ -194,7 +284,7 @@ export default function CheckoutPage() {
                                             required
                                             value={deliveryAddress.phone}
                                             onChange={handleInputChange}
-                                            className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                         />
                                     </div>
 
@@ -208,7 +298,7 @@ export default function CheckoutPage() {
                                             required
                                             value={deliveryAddress.doorNo}
                                             onChange={handleInputChange}
-                                            className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                         />
                                     </div>
 
@@ -222,7 +312,7 @@ export default function CheckoutPage() {
                                             required
                                             value={deliveryAddress.street}
                                             onChange={handleInputChange}
-                                            className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                         />
                                     </div>
 
@@ -236,7 +326,7 @@ export default function CheckoutPage() {
                                             required
                                             value={deliveryAddress.city}
                                             onChange={handleInputChange}
-                                            className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                         />
                                     </div>
 
@@ -247,9 +337,10 @@ export default function CheckoutPage() {
                                         <input
                                             type="text"
                                             name="state"
+                                            required
                                             value={deliveryAddress.state}
                                             onChange={handleInputChange}
-                                            className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                         />
                                     </div>
 
@@ -263,7 +354,7 @@ export default function CheckoutPage() {
                                             required
                                             value={deliveryAddress.pincode}
                                             onChange={handleInputChange}
-                                            className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                         />
                                     </div>
 
@@ -276,7 +367,7 @@ export default function CheckoutPage() {
                                             name="landmark"
                                             value={deliveryAddress.landmark}
                                             onChange={handleInputChange}
-                                            className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                         />
                                     </div>
                                 </div>
@@ -284,10 +375,20 @@ export default function CheckoutPage() {
                                 <div className="mt-8">
                                     <button
                                         type="submit"
-                                        className="w-full flex justify-center items-center gap-2 bg-indigo-600 text-white py-3 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors"
+                                        disabled={isLoading}
+                                        className="w-full flex justify-center items-center gap-2 bg-indigo-600 text-white py-3 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors disabled:bg-indigo-400 disabled:cursor-not-allowed"
                                     >
-                                        <Truck className="w-5 h-5" />
-                                        Place Order
+                                        {isLoading ? (
+                                            <>
+                                                <Loader2 className="w-5 h-5 animate-spin" />
+                                                Processing...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Truck className="w-5 h-5" />
+                                                Place Order
+                                            </>
+                                        )}
                                     </button>
                                 </div>
                             </form>
@@ -296,5 +397,5 @@ export default function CheckoutPage() {
                 </div>
             </div>
         </div>
-    );
+    )
 }

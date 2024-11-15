@@ -13,6 +13,10 @@ import ProductDetails from './components/Products/ProductDetails';
 import UserProfile from './components/UserProfile';
 import CheckoutPage from './components/Cart/CheckoutPage';
 import ProductCatalog from './components/Products/ProductCatalog';
+import SimpleMap from './components/SimpleMap';
+import Footer from './components/Layout/Footer';
+import { Success } from './components/Cart/Success';
+import SignupForm from './components/Auth/SignupForm';
 // ProtectedRoute Component remains the same
 const ProtectedRoute = ({ children, requireAdmin = false }: { children: React.ReactNode, requireAdmin?: boolean }) => {
   const { user, isLoading } = useAuth();
@@ -58,6 +62,8 @@ export default function App() {
                 <Layout fullWidth>
                   <Hero />
                   <ProductCatalog />
+                  <SimpleMap />
+                  <Footer />
                 </Layout>
               }
             />
@@ -67,6 +73,14 @@ export default function App() {
               element={
                 <Layout>
                   <LoginForm />
+                </Layout>
+              }
+            />
+            <Route
+              path="/signup"
+              element={
+                <Layout>
+                  <SignupForm />
                 </Layout>
               }
             />
@@ -116,7 +130,16 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
-
+            <Route
+              path="/order-confirmation/:orderId"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Success />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
 
             <Route
               path="/services"

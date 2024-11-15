@@ -1,6 +1,7 @@
 import React from 'react';
 import { ArrowRight, Phone } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import TechnicianCards from './TechnicianCards';
 
 const technicians = [
     {
@@ -12,7 +13,7 @@ const technicians = [
     {
         name: "Bharath Kumar",
         role: "DTH Technician",
-        image: "https://lh3.googleusercontent.com/p/AF1QipPdjHyrQ4DEtZHDaQGuRrq5fI6EbVsefPeBtl7v=s1360-w1360-h1020",
+        image: "https://lh3.googleusercontent.com/a-/ALV-UjU4Cr0RQwbHdZJDkaSx3wbzPFcxBAUMMa9W94m5rI1zoLHSwuY=w120-h120-p-rp-mo-br100",
         contact: "+91 970126 6950"
     }
 ];
@@ -23,7 +24,7 @@ export default function Hero() {
             <div className="mx-auto max-w-7xl lg:grid lg:grid-cols-12 lg:gap-x-8 lg:px-8">
                 <div className="px-6 pb-24 pt-6 sm:pb-32 lg:col-span-7 lg:px-0 lg:pb-56 lg:pt-8 xl:col-span-6">
                     {/* Technician Cards */}
-                    <div className="mb-8 lg:mb-12">
+                    {/* <div className="mb-8 lg:mb-12">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             {technicians.map((tech, index) => (
                                 <div
@@ -46,8 +47,9 @@ export default function Hero() {
                                 </div>
                             ))}
                         </div>
-                    </div>
+                    </div> */}
 
+                    <TechnicianCards technicians={technicians} />
                     {/* Main Content */}
                     <div className="mx-auto max-w-2xl lg:mx-0">
                         <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">
