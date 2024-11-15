@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
-import { ArrowLeft, ShoppingCart, Truck, CheckCircle, XCircle, Package } from 'lucide-react';
-import { mockProducts, ProductData } from './ProductsData';
+import { ArrowLeft, ShoppingCart, Truck, XCircle } from 'lucide-react';
 import type { Product } from '../../types';
 // Mock product database and pincode service remain the same
 
@@ -47,6 +46,7 @@ interface ProductApiResponse {
 export default function ProductDetails() {
     const { productId } = useParams<{ productId: string }>();
     const { category } = useParams<{ category: string }>();
+    // eslint-disable-next-line
     const [categoryName, setCategoryName] = useState<string>('');
 
 
@@ -127,22 +127,6 @@ export default function ProductDetails() {
         return (
             <div className="flex flex-col items-center justify-center min-h-[400px]">
                 <h2 className="text-2xl font-semibold text-gray-900 mb-4">Invalid product URL</h2>
-                <button
-                    onClick={() => navigate('/')}
-                    className="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
-                >
-                    <ArrowLeft className="h-5 w-5 mr-2" />
-                    Go to Home
-                </button>
-            </div>
-        );
-    }
-
-    // Show error if category doesn't exist in mockProducts
-    if (!mockProducts[category]) {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-[400px]">
-                <h2 className="text-2xl font-semibold text-gray-900 mb-4">Category not found</h2>
                 <button
                     onClick={() => navigate('/')}
                     className="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-100 flex items-center space-x-2"

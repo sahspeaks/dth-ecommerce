@@ -35,7 +35,7 @@ interface ApiError {
 }
 
 export default function CheckoutPage() {
-    const { user, updateUser } = useAuth();
+    const { user } = useAuth();
     // console.log(user);
     // console.log(user?.username)
 
