@@ -24,30 +24,6 @@ export default function Hero() {
             <div className="mx-auto max-w-7xl lg:grid lg:grid-cols-12 lg:gap-x-8 lg:px-8">
                 <div className="px-6 pb-24 pt-6 sm:pb-32 lg:col-span-7 lg:px-0 lg:pb-56 lg:pt-8 xl:col-span-6">
                     {/* Technician Cards */}
-                    {/* <div className="mb-8 lg:mb-12">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            {technicians.map((tech, index) => (
-                                <div
-                                    key={index}
-                                    className="bg-white rounded-lg shadow-md p-4 flex items-center space-x-4"
-                                >
-                                    <img
-                                        src={tech.image}
-                                        alt={tech.name}
-                                        className="h-16 w-16 rounded-full object-cover lg:scale-125 lg:origin-center"
-                                    />
-                                    <div>
-                                        <h3 className="font-semibold text-gray-900">{tech.name}</h3>
-                                        <p className="text-sm text-gray-500">{tech.role}</p>
-                                        <div className="flex items-center text-sm text-indigo-600 mt-1">
-                                            <Phone className="h-4 w-4 mr-1" />
-                                            {tech.contact}
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div> */}
 
                     <TechnicianCards technicians={technicians} />
                     {/* Main Content */}

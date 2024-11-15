@@ -35,7 +35,7 @@ export default function ProductList() {
     const [error, setError] = useState<string | null>(null);
     const [categories, setCategories] = useState<Record<string, string>>({});
 
-    const BASE_URL = 'http://localhost:9000';
+    const BASE_URL = 'https://dth-backend.onrender.com';
 
     const handleAddToCart = (product: ProductData) => {
         addToCart(product, 1);
@@ -62,7 +62,7 @@ export default function ProductList() {
                 }
 
                 const data = await response.json();
-                console.log('Categories response:', data); // Debug log
+                // console.log('Categories response:', data); // Debug log
 
                 // Handle both possible response structures
                 const categoriesData: CategoryResponse[] = Array.isArray(data) ? data : data.categories || [];
@@ -77,7 +77,7 @@ export default function ProductList() {
                     });
                 }
 
-                console.log('Processed categories:', categoryMap); // Debug log
+                // console.log('Processed categories:', categoryMap); // Debug log
                 setCategories(categoryMap);
             } catch (err) {
                 console.error('Error fetching categories:', err);

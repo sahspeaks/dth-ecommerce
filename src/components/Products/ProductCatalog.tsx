@@ -25,10 +25,10 @@ interface ProductCategoryData {
 const ProductCatalog = () => {
     const [productCategories, setProductCategories] = useState<ProductCategoryData>({});
 
-    const BASE_URL = 'http://localhost:9000';
+    const BASE_URL = 'https://dth-backend.onrender.com';
 
     useEffect(() => {
-        console.log('Fetching product categories...');
+        // console.log('Fetching product categories...');
 
         const fetchProductCategories = async () => {
             try {
@@ -37,13 +37,13 @@ const ProductCatalog = () => {
                     throw new Error(`HTTP error ${response.status}`);
                 }
                 const { categories } = await response.json();
-                console.log('Fetched categories:', categories);
+                // console.log('Fetched categories:', categories);
 
                 const categoryProducts: ProductCategoryData = {};
                 for (const category of categories) {
-                    console.log('Fetching products for category:', category);
+                    // console.log('Fetching products for category:', category);
                     const productResponse = await fetch(`${BASE_URL}/api/v1/products/${category._id}`);
-                    console.log('Fetching category response:', productResponse);
+                    // console.log('Fetching category response:', productResponse);
 
                     if (!productResponse.ok) {
                         throw new Error(`HTTP error ${productResponse.status}`);

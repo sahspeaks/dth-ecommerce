@@ -36,15 +36,15 @@ interface ApiError {
 
 export default function CheckoutPage() {
     const { user, updateUser } = useAuth();
-    console.log(user);
-    console.log(user?.username)
+    // console.log(user);
+    // console.log(user?.username)
 
     const location = useLocation();
     const navigate = useNavigate();
     const { items: cartItems, total: cartTotal, clearCart } = useCart();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const BASE_URL = 'http://localhost:9000'
+    const BASE_URL = 'https://dth-backend.onrender.com'
 
     const [deliveryAddress, setDeliveryAddress] = useState<DeliveryAddress>({
         fullName: '',
@@ -105,7 +105,7 @@ export default function CheckoutPage() {
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
-        console.log(user?.username);
+        // console.log(user?.username);
         e.preventDefault();
         setError(null);
 
@@ -139,7 +139,7 @@ export default function CheckoutPage() {
             });
 
             const data = await response.json();
-            console.log(data)
+            // console.log(data)
 
             if (!response.ok) {
                 throw new Error(data.message || 'Failed to place order');

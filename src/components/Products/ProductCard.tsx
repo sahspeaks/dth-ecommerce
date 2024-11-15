@@ -26,8 +26,8 @@ const getCategoryName = (categoryId: string): string => {
 export default function ProductCard({ product, productId, onAddToCart }: ProductCardProps) {
     const navigate = useNavigate();
     const categoryName = getCategoryName(product.category);
-    console.log('ProductCard rendered with product:', product);
-    console.log('ProductCard rendered with productId:', productId);
+    // console.log('ProductCard rendered with product:', product);
+    // console.log('ProductCard rendered with productId:', productId);
 
 
     const handleClick = () => {

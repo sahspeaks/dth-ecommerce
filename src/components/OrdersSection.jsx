@@ -2,13 +2,12 @@ import React, { useState, useEffect } from "react";
 import { Package, ChevronDown, ChevronUp, MapPin, Truck } from "lucide-react";
 
 const OrdersSection = ({ customerId }) => {
-  console.log(customerId);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [expandedOrder, setExpandedOrder] = useState(null);
 
-  const BASE_URL = "http://localhost:9000";
+  const BASE_URL = "https://dth-backend.onrender.com";
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -24,7 +23,7 @@ const OrdersSection = ({ customerId }) => {
           }
         );
         const data = await response.json();
-        console.log(data);
+        // console.log(data);
 
         if (data.success) {
           setOrders(data.orders);

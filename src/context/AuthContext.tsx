@@ -40,7 +40,7 @@ interface UpdateUserData {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const BASE_URL = 'http://localhost:9000';
+const BASE_URL = 'https://dth-backend.onrender.com';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null);

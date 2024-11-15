@@ -34,7 +34,7 @@ const getStorageKey = (userId: string | undefined) => {
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
     const { user } = useAuth();
-    console.log('User ID:', user?.email);
+    // console.log('User ID:', user?.email);
 
     const [carts, setCarts] = useState<Record<string, CartState>>({});
     const [currentCart, setCurrentCart] = useState<CartState>({ items: [], total: 0 });

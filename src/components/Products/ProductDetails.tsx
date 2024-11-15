@@ -50,8 +50,8 @@ export default function ProductDetails() {
     const [categoryName, setCategoryName] = useState<string>('');
 
 
-    console.log('Product ID:', productId);
-    console.log('Category:', category);
+    // console.log('Product ID:', productId);
+    // console.log('Category:', category);
 
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const navigate = useNavigate();
@@ -68,7 +68,7 @@ export default function ProductDetails() {
     const [currentImage, setCurrentImage] = useState<string>('');
     const [productImages, setProductImages] = useState<string[]>([]);
 
-    const BASE_URL = 'http://localhost:9000';
+    const BASE_URL = 'https://dth-backend.onrender.com';
 
 
     useEffect(() => {
@@ -82,12 +82,12 @@ export default function ProductDetails() {
                         'Content-Type': 'application/json',
                     },
                 })
-                console.log('Response:', response);
+                // console.log('Response:', response);
                 const data: { product: ProductApiResponse } = await response.json();
                 const productData = data.product;
-                console.log('Response data:', productData);
+                // console.log('Response data:', productData);
                 setCategoryName(productData.category.name);
-                console.log('Category Name:', category);
+                // console.log('Category Name:', category);
                 setSelectedProduct({
                     id: productData._id,
                     name: productData.name,
