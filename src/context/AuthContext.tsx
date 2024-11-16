@@ -1,5 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { SERVER } from '../server.js'
 
 interface User {
     _id: string;
@@ -40,7 +41,7 @@ interface UpdateUserData {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const BASE_URL = 'https://dth-backend.onrender.com';
+const BASE_URL = SERVER;
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null);

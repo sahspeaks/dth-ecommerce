@@ -1,29 +1,61 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
-import { ArrowLeft, ShoppingCart, Truck, XCircle } from 'lucide-react';
+import { ArrowLeft, Loader2, ShoppingCart, Truck, XCircle } from 'lucide-react';
 import type { Product } from '../../types';
+import { SERVER } from '../../server.js'
 // Mock product database and pincode service remain the same
 
 // Define type for pincode service
 type PincodeDeliveryDays = {
-    '400001': number;
-    '400002': number;
-    '400003': number;
-    '400004': number;
-    '400005': number;
+    '507124': number,
+    '517501': number,
+    '517502': number,
+    '517503': number,
+    '517504': number,
+    '517505': number,
+    '517507': number,
+    '517520': number,
+    '517619': number,
+    '518002': number,
+    '518313': number,
+    '518411': number,
+    '521207': number,
+    '522414': number,
+    '524129': number,
+    '532203': number,
+    '533285': number,
+    '533440': number
 };
 
 type ValidPincode = keyof PincodeDeliveryDays;
 
 const pincodeService = {
-    availablePincodes: ['400001', '400002', '400003', '400004', '400005'] as ValidPincode[],
+    availablePincodes: [
+        '507124', '517501', '517502', '517503', '517504',
+        '517505', '517507', '517520', '517619', '518002',
+        '518313', '518411', '521207', '522414', '524129',
+        '532203', '533285', '533440'
+    ] as ValidPincode[],
     deliveryDays: {
-        '400001': 2,
-        '400002': 3,
-        '400003': 1,
-        '400004': 4,
-        '400005': 2,
+        '507124': 2,
+        '517501': 1,
+        '517502': 1,
+        '517503': 1,
+        '517504': 1,
+        '517505': 1,
+        '517507': 1,
+        '517520': 2,
+        '517619': 2,
+        '518002': 2,
+        '518313': 2,
+        '518411': 2,
+        '521207': 2,
+        '522414': 2,
+        '524129': 2,
+        '532203': 2,
+        '533285': 2,
+        '533440': 2,
     } satisfies PincodeDeliveryDays
 };
 
@@ -68,13 +100,21 @@ export default function ProductDetails() {
     const [currentImage, setCurrentImage] = useState<string>('');
     const [productImages, setProductImages] = useState<string[]>([]);
 
-    const BASE_URL = 'https://dth-backend.onrender.com';
+    const BASE_URL = SERVER;
+
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
 
     useEffect(() => {
 
         // Fetch product details from the API
         const fetchProductDetails = async () => {
+            if (!category) {
+                setError('Category not specified');
+                setLoading(false);
+                return;
+            }
             try {
                 const response = await fetch(`${BASE_URL}/api/v1/product/${productId}`, {
                     method: 'GET',
@@ -82,6 +122,9 @@ export default function ProductDetails() {
                         'Content-Type': 'application/json',
                     },
                 })
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
                 // console.log('Response:', response);
                 const data: { product: ProductApiResponse } = await response.json();
                 const productData = data.product;
@@ -103,14 +146,14 @@ export default function ProductDetails() {
                 const images = [productData.image, ...(productData.addImages || [])];
                 setProductImages(images);
                 setCurrentImage(images[0]);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-                }
-                // setSelectedProduct(data);
+                setError(null);
 
             } catch (error) {
                 console.error('Error fetching product details:', error);
-                throw error;
+                setError(error instanceof Error ? error.message : 'An unexpected error occurred while fetching product details.');
+            }
+            finally {
+                setLoading(false);
             }
         }
 
@@ -127,6 +170,7 @@ export default function ProductDetails() {
         return (
             <div className="flex flex-col items-center justify-center min-h-[400px]">
                 <h2 className="text-2xl font-semibold text-gray-900 mb-4">Invalid product URL</h2>
+                {error}
                 <button
                     onClick={() => navigate('/')}
                     className="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
@@ -137,12 +181,21 @@ export default function ProductDetails() {
             </div>
         );
     }
+    // Show loading state while fetching product details
+    if (loading) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[400px]">
+                <Loader2 className="h-16 w-16 animate-spin text-gray-600 text-2xl" />
+            </div>
+        )
+    }
 
     // Show error if product is not found
     if (!selectedProduct) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[400px]">
                 <h2 className="text-2xl font-semibold text-gray-900 mb-4">Product not found</h2>
+                {error}
                 <button
                     onClick={() => navigate(`/products/${category}`)}
                     className="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
@@ -153,6 +206,7 @@ export default function ProductDetails() {
             </div>
         );
     }
+
 
 
     const handleAddToCart = () => {

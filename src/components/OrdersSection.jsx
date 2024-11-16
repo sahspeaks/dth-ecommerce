@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Package, ChevronDown, ChevronUp, MapPin, Truck } from "lucide-react";
+import { SERVER } from "../server.js";
 
 const OrdersSection = ({ customerId }) => {
   const [orders, setOrders] = useState([]);
@@ -7,7 +8,7 @@ const OrdersSection = ({ customerId }) => {
   const [error, setError] = useState(null);
   const [expandedOrder, setExpandedOrder] = useState(null);
 
-  const BASE_URL = "https://dth-backend.onrender.com";
+  const BASE_URL = SERVER;
 
   useEffect(() => {
     const fetchOrders = async () => {

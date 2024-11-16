@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
+import { SERVER } from '../../server';
 
 interface Category {
     _id: string;
@@ -25,7 +26,7 @@ interface ProductCategoryData {
 const ProductCatalog = () => {
     const [productCategories, setProductCategories] = useState<ProductCategoryData>({});
 
-    const BASE_URL = 'https://dth-backend.onrender.com';
+    const BASE_URL = SERVER;
 
     useEffect(() => {
         // console.log('Fetching product categories...');

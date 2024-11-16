@@ -3,6 +3,7 @@ import { useCart } from "../../context/CartContext";
 import { useState } from "react";
 import { MapPin, Package, Truck, Loader2, AlertCircle } from "lucide-react";
 import { useAuth } from '../../context/AuthContext';
+import { SERVER } from "../../server";
 
 
 interface BaseItem {
@@ -44,7 +45,7 @@ export default function CheckoutPage() {
     const { items: cartItems, total: cartTotal, clearCart } = useCart();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const BASE_URL = 'https://dth-backend.onrender.com'
+    const BASE_URL = SERVER;
 
     const [deliveryAddress, setDeliveryAddress] = useState<DeliveryAddress>({
         fullName: '',
