@@ -1,5 +1,5 @@
 import React from "react";
-import { Clock, Calendar, MapPin, DollarSign, ChevronDown } from "lucide-react";
+import { Clock, Calendar, MapPin, ChevronDown } from "lucide-react";
 import { SERVER } from "../../server";
 
 const ServiceSection = ({ customerId }) => {
@@ -87,11 +87,12 @@ const ServiceSection = ({ customerId }) => {
   if (isLoading) {
     return (
       <div className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">
-          Service Orders
-        </h2>
-        <div className="flex justify-center items-center h-32">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+        <div className="animate-pulse space-y-4">
+          <div className="h-6 bg-gray-200 rounded w-1/4"></div>
+          <div className="space-y-3">
+            <div className="h-20 bg-gray-200 rounded"></div>
+            <div className="h-20 bg-gray-200 rounded"></div>
+          </div>
         </div>
       </div>
     );

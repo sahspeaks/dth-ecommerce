@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowRight, Phone } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import TechnicianCards from './TechnicianCards';
 

@@ -18,6 +18,7 @@ import Footer from './components/Layout/Footer';
 import { Success } from './components/Cart/Success';
 import SignupForm from './components/Auth/SignupForm';
 import ServiceCheckoutPage from './components/Service/ServiceCheckoutPage';
+import { ToastProvider } from './context/ToastContext';
 // ProtectedRoute Component remains the same
 const ProtectedRoute = ({ children, requireAdmin = false }: { children: React.ReactNode, requireAdmin?: boolean }) => {
   const { user, isLoading } = useAuth();
@@ -53,137 +54,139 @@ const Layout = ({ children, fullWidth = false }: { children: React.ReactNode, fu
 export default function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <CartProvider>
-          <Routes>
-            {/* Public Routes */}
-            <Route
-              path="/"
-              element={
-                <Layout fullWidth>
-                  <Hero />
-                  <ProductCatalog />
-                  <SimpleMap />
-                  <Footer />
-                </Layout>
-              }
-            />
+      <ToastProvider>
+        <AuthProvider>
+          <CartProvider>
+            <Routes>
+              {/* Public Routes */}
+              <Route
+                path="/"
+                element={
+                  <Layout fullWidth>
+                    <Hero />
+                    <ProductCatalog />
+                    <SimpleMap />
+                    <Footer />
+                  </Layout>
+                }
+              />
 
-            <Route
-              path="/login"
-              element={
+              <Route
+                path="/login"
+                element={
+                  <Layout>
+                    <LoginForm />
+                  </Layout>
+                }
+              />
+              <Route
+                path="/signup"
+                element={
+                  <Layout>
+                    <SignupForm />
+                  </Layout>
+                }
+              />
+
+              {/* Product Routes */}
+              <Route
+                path="/products/*"
+                element={
+                  <Layout>
+                    <ProductList />
+                  </Layout>
+                }
+              />
+
+              <Route
+                path="/products/:category"
+                element={
+                  <Layout>
+                    <ProductList />
+                  </Layout>
+                }
+              />
+              <Route path="/products/:category/:productId" element={
                 <Layout>
-                  <LoginForm />
+                  <ProductDetails />
                 </Layout>
-              }
-            />
-            <Route
-              path="/signup"
-              element={
-                <Layout>
-                  <SignupForm />
-                </Layout>
-              }
-            />
+              } />
 
-            {/* Product Routes */}
-            <Route
-              path="/products/*"
-              element={
-                <Layout>
-                  <ProductList />
-                </Layout>
-              }
-            />
+              {/* Protected Routes */}
+              <Route
+                path="/cart"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <CartPage />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/checkout"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <CheckoutPage />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/service-checkout"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <ServiceCheckoutPage />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/order-confirmation/:orderId"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Success />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
 
-            <Route
-              path="/products/:category"
-              element={
-                <Layout>
-                  <ProductList />
-                </Layout>
-              }
-            />
-            <Route path="/products/:category/:productId" element={
-              <Layout>
-                <ProductDetails />
-              </Layout>
-            } />
+              <Route
+                path="/services"
+                element={
+                  <Layout>
+                    <ServiceBooking />
+                  </Layout>
+                }
+              />
 
-            {/* Protected Routes */}
-            <Route
-              path="/cart"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <CartPage />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/checkout"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <CheckoutPage />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/service-checkout"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <ServiceCheckoutPage />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/order-confirmation/:orderId"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <Success />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/services"
-              element={
-                <Layout>
-                  <ServiceBooking />
-                </Layout>
-              }
-            />
-
-            <Route
-              path="/admin/*"
-              element={
-                <ProtectedRoute requireAdmin>
-                  <Layout>
-                    <AdminDashboard />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/profile/*"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <UserProfile />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-          </Routes>
-        </CartProvider>
-      </AuthProvider>
+              <Route
+                path="/admin/*"
+                element={
+                  <ProtectedRoute requireAdmin>
+                    <Layout>
+                      <AdminDashboard />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/profile/*"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <UserProfile />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
+          </CartProvider>
+        </AuthProvider>
+      </ToastProvider>
     </BrowserRouter>
   );
 }

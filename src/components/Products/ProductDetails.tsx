@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
-import { ArrowLeft, Loader2, ShoppingCart, Truck, XCircle } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, Truck, XCircle } from 'lucide-react';
 import type { Product } from '../../types';
 import { SERVER } from '../../server.js'
+import { ProductDetailsLoading } from '../Layout/Loading'
+import { useToast } from '../../context/ToastContext';
+
 // Mock product database and pincode service remain the same
 
 // Define type for pincode service
@@ -76,6 +79,7 @@ interface ProductApiResponse {
 }
 
 export default function ProductDetails() {
+    const { showToast } = useToast();
     const { productId } = useParams<{ productId: string }>();
     const { category } = useParams<{ category: string }>();
     // eslint-disable-next-line
@@ -184,9 +188,7 @@ export default function ProductDetails() {
     // Show loading state while fetching product details
     if (loading) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-[400px]">
-                <Loader2 className="h-16 w-16 animate-spin text-gray-600 text-2xl" />
-            </div>
+            <ProductDetailsLoading />
         )
     }
 
@@ -211,6 +213,7 @@ export default function ProductDetails() {
 
     const handleAddToCart = () => {
         addToCart({ ...selectedProduct }, quantity);
+        showToast(`${selectedProduct.name} has been added to your cart`, 'success');
     };
 
     const handleBuyNow = () => {

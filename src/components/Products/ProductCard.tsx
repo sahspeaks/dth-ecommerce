@@ -2,6 +2,7 @@ import React from 'react';
 import { ShoppingCart } from 'lucide-react';
 import type { Product } from '../../types';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '../../context/ToastContext';
 
 const CATEGORY_IDS = {
     dth: '673326295991231139de193b',
@@ -24,6 +25,7 @@ const getCategoryName = (categoryId: string): string => {
 
 
 export default function ProductCard({ product, productId, onAddToCart }: ProductCardProps) {
+    const { showToast } = useToast();
     const navigate = useNavigate();
     const categoryName = getCategoryName(product.category);
     // console.log('ProductCard rendered with product:', product);
@@ -37,6 +39,8 @@ export default function ProductCard({ product, productId, onAddToCart }: Product
     const handleAddToCart = (e: React.MouseEvent) => {
         e.stopPropagation();
         onAddToCart(product);
+        showToast(`${product.name} has been added to your cart`, 'success');
+
     };
 
     return (

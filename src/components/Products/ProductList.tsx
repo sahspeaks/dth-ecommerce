@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ProductCard from './ProductCard';
-import type { Product } from '../../types';
 import { useCart } from '../../context/CartContext';
-import { Home, Loader2, Search } from 'lucide-react';
+import { Home, Search } from 'lucide-react';
 import { mockProducts, ProductData } from './ProductsData';
 import { SERVER } from '../../server.js';
+import { ProductListLoading } from '../Layout/Loading';
 
 interface CategoryResponse {
     _id: string;
@@ -201,9 +201,7 @@ export default function ProductList() {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center min-h-[400px]">
-                <Loader2 className="h-16 w-16 animate-spin text-gray-600" />
-            </div>
+            <ProductListLoading />
         );
     }
 

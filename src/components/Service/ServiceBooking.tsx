@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, Clock, Home } from 'lucide-react';
+import { Clock, Home } from 'lucide-react';
 import { Service } from '../../types';
 import { useNavigate } from 'react-router-dom';
 
