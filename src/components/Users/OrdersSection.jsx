@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Package, ChevronDown, ChevronUp, MapPin, Truck } from "lucide-react";
-import { SERVER } from "../server.js";
+import { SERVER } from "../../server.js";
 
 const OrdersSection = ({ customerId }) => {
   const [orders, setOrders] = useState([]);

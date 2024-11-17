@@ -1,6 +1,6 @@
 import React from 'react';
 import { Calendar, Clock, Home } from 'lucide-react';
-import { Service } from '../types';
+import { Service } from '../../types';
 import { useNavigate } from 'react-router-dom';
 
 const services: Service[] = [
@@ -8,7 +8,7 @@ const services: Service[] = [
         id: '1',
         name: 'DTH Installation',
         description: 'Professional installation of DTH equipment',
-        price: 499,
+        price: 399,
         type: 'installation',
         duration: '2-3 hours'
     },
@@ -34,11 +34,20 @@ export default function ServiceBooking() {
     const [selectedService, setSelectedService] = React.useState<string>('');
     const [date, setDate] = React.useState<string>('');
     const [time, setTime] = React.useState<string>('');
+    const [price, setPrice] = React.useState<number>(0);
 
     const navigate = useNavigate();
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        console.log({ selectedService, date, time });
+        console.log({ selectedService, date, time, price });
+        navigate('/service-checkout', {
+            state: {
+                selectedService,
+                date,
+                time,
+                price
+            }
+        });
     };
     const handleGoHome = () => {
         navigate('/');
@@ -66,11 +75,14 @@ export default function ServiceBooking() {
                         {services.map((service) => (
                             <div
                                 key={service.id}
-                                className={`p-4 border rounded-lg cursor-pointer transition-colors ${selectedService === service.id
+                                className={`p-4 border rounded-lg cursor-pointer transition-colors ${selectedService === service.type
                                     ? 'border-indigo-600 bg-indigo-50'
                                     : 'border-gray-200 hover:border-indigo-600'
                                     }`}
-                                onClick={() => setSelectedService(service.id)}
+                                onClick={() => {
+                                    setSelectedService(service.type);
+                                    setPrice(service.price);
+                                }}
                             >
                                 <div className="flex justify-between items-start">
                                     <div>
@@ -101,7 +113,7 @@ export default function ServiceBooking() {
                                     required
                                     value={date}
                                     onChange={(e) => setDate(e.target.value)}
-                                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                     min={new Date().toISOString().split('T')[0]}
                                 />
                             </div>
@@ -116,7 +128,7 @@ export default function ServiceBooking() {
                                     required
                                     value={time}
                                     onChange={(e) => setTime(e.target.value)}
-                                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                 >
                                     <option value="">Select a time slot</option>
                                     <option value="09:00">09:00 AM</option>

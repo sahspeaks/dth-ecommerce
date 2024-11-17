@@ -8,15 +8,16 @@ import CartPage from './components/Cart/CartPage';
 import AdminDashboard from './components/Admin/AdminDashboard';
 import ProductList from './components/Products/ProductList';
 import Hero from './components/Hero';
-import ServiceBooking from './components/ServiceBooking';
+import ServiceBooking from './components/Service/ServiceBooking';
 import ProductDetails from './components/Products/ProductDetails';
-import UserProfile from './components/UserProfile';
+import UserProfile from './components/Users/UserProfile';
 import CheckoutPage from './components/Cart/CheckoutPage';
 import ProductCatalog from './components/Products/ProductCatalog';
 import SimpleMap from './components/SimpleMap';
 import Footer from './components/Layout/Footer';
 import { Success } from './components/Cart/Success';
 import SignupForm from './components/Auth/SignupForm';
+import ServiceCheckoutPage from './components/Service/ServiceCheckoutPage';
 // ProtectedRoute Component remains the same
 const ProtectedRoute = ({ children, requireAdmin = false }: { children: React.ReactNode, requireAdmin?: boolean }) => {
   const { user, isLoading } = useAuth();
@@ -39,7 +40,7 @@ const ProtectedRoute = ({ children, requireAdmin = false }: { children: React.Re
 // Updated Layout Component to handle full-width content
 const Layout = ({ children, fullWidth = false }: { children: React.ReactNode, fullWidth?: boolean }) => {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pt-16">
       <Navbar />
       <main className={fullWidth ? '' : 'container mx-auto px-4 py-8'}>
         {children}
@@ -126,6 +127,16 @@ export default function App() {
                 <ProtectedRoute>
                   <Layout>
                     <CheckoutPage />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/service-checkout"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <ServiceCheckoutPage />
                   </Layout>
                 </ProtectedRoute>
               }

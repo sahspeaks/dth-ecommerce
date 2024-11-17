@@ -1,248 +1,109 @@
-import { useLocation, useNavigate } from "react-router-dom";
-import { useCart } from "../../context/CartContext";
-import { useState } from "react";
-import { MapPin, Package, Truck, Loader2, AlertCircle } from "lucide-react";
+import React from 'react';
+import { Home, MapPin, Truck, Loader2 } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { SERVER } from "../../server";
+import { SERVER } from '../../server';
 
-
-interface BaseItem {
-    id: string | number;
-    name: string;
-    quantity: number;
-    price: number;
-    image?: string;
-}
-
-interface CartItemWithSubtotal extends BaseItem {
-    subtotal: number;
-}
-
-interface DeliveryAddress {
-    fullName: string;
-    email: string;
-    city: string;
-    state: string;
-    pincode: string;
-    phone: string;
-    doorNo: string;
-    street: string;
-    landmark: string;
-}
-
-interface ApiError {
-    message: string;
-    error?: string;
-}
-
-export default function CheckoutPage() {
-    const { user } = useAuth();
-    // console.log(user);
-    // console.log(user?.username)
-
+const ServiceCheckoutPage = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { items: cartItems, total: cartTotal, clearCart } = useCart();
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const { selectedService, date, time, price } = location.state || {};
+    const [isLoading, setIsLoading] = React.useState(false);
+    const { user } = useAuth();
     const BASE_URL = SERVER;
 
-    const [deliveryAddress, setDeliveryAddress] = useState<DeliveryAddress>({
+    const [deliveryAddress, setDeliveryAddress] = React.useState({
         fullName: '',
         email: '',
-        city: '',
-        state: '',
-        pincode: '',
         phone: '',
         doorNo: '',
         street: '',
+        city: '',
+        state: '',
+        pincode: '',
         landmark: ''
     });
 
-    const navigationState = location.state as {
-        cartSummary: { items: CartItemWithSubtotal[]; totalAmount: number; };
-        isBuyNow: boolean;
-    } | null;
-
-    const cartItemsWithSubtotal = cartItems.map(item => ({
-        ...item,
-        subtotal: item.price * item.quantity
-    }));
-
-    const checkoutItems = navigationState?.isBuyNow
-        ? navigationState.cartSummary.items
-        : cartItemsWithSubtotal;
-
-    const totalAmount = navigationState?.isBuyNow
-        ? navigationState.cartSummary.totalAmount
-        : cartTotal;
+    React.useEffect(() => {
+        if (!location.state) {
+            navigate('/');
+        }
+    }, [location.state, navigate]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
-        setError(null);
         setDeliveryAddress(prev => ({
             ...prev,
             [name]: value
         }));
     };
 
-    const validateForm = () => {
-        if (!/^\d{10}$/.test(deliveryAddress.phone)) {
-            setError('Please enter a valid 10-digit phone number');
-            return false;
-        }
-
-        if (!/^\d{6}$/.test(deliveryAddress.pincode)) {
-            setError('Please enter a valid 6-digit PIN code');
-            return false;
-        }
-
-        if (!/\S+@\S+\.\S+/.test(deliveryAddress.email)) {
-            setError('Please enter a valid email address');
-            return false;
-        }
-
-        return true;
-    };
+    const needsAddress = selectedService === 'installation' || selectedService === 'support';
+    const shopAddress = "235'A Nethaji Road, Tirupati";
 
     const handleSubmit = async (e: React.FormEvent) => {
-        // console.log(user?.username);
         e.preventDefault();
-        setError(null);
-
-        if (!validateForm()) {
-            return;
-        }
-
         setIsLoading(true);
 
         try {
-            const response = await fetch(`${BASE_URL}/api/v1/create-order`, {
-                method: 'POST',
+            const orderDetails = {
+                service: selectedService,
+                date,
+                time,
+                price,
+                customerId: user?._id,
+                customerName: user?.username,
+                ...(needsAddress ? deliveryAddress : { address: shopAddress })
+            };
+            console.log('Order details:', orderDetails);
+            // Add API call here
+            const response = await fetch(`${BASE_URL}/api/v1/create-service`, {
+                method: "POST",
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
                 },
-                body: JSON.stringify({
-                    orderItems: checkoutItems.map(item => ({
-                        productId: item.id,
-                        productName: item.name,
-                        quantity: item.quantity,
-                        price: item.price
-                    })),
-                    deliveryAddress,
-                    customerId: user?._id,
-                    customerName: user?.username,
-                    totalAmount,
-                    shippingCost: 199,
-                    orderType: navigationState?.isBuyNow ? 'BUY_NOW' : 'CART_CHECKOUT'
-                })
-            });
-
-            const data = await response.json();
-            // console.log(data)
-
+                body: JSON.stringify(orderDetails)
+            })
             if (!response.ok) {
-                throw new Error(data.message || 'Failed to place order');
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
-
-            if (!navigationState?.isBuyNow) {
-                clearCart();
-            }
-
-            navigate(`/order-confirmation/${data.orderId}`, {
+            const data = await response.json();
+            console.log(data)
+            // Navigate to success page or show success message
+            navigate(`/order-confirmation/${data.data.serviceId}`, {
                 state: { orderDetails: data }
             });
-
         } catch (error) {
-            const err = error as ApiError;
-            setError(err.message || 'An error occurred while placing your order. Please try again.');
+            console.error('Error processing order:', error);
         } finally {
             setIsLoading(false);
         }
     };
 
-    if (!navigationState?.isBuyNow && checkoutItems.length === 0) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                <div className="text-center">
-                    <h2 className="text-xl font-semibold text-gray-900">Your cart is empty</h2>
-                    <button
-                        onClick={() => navigate('/products')}
-                        className="mt-4 bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors"
-                    >
-                        Continue Shopping
-                    </button>
-                </div>
-            </div>
-        );
-    }
+    if (!location.state) return null;
 
     return (
-        <div className="min-h-screen bg-gray-50 py-8">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                {error && (
-                    <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-700">
-                        <AlertCircle className="w-5 h-5 flex-shrink-0" />
-                        <p>{error}</p>
-                    </div>
-                )}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div className="flex items-center mb-8">
+                <button
+                    onClick={() => navigate(-1)}
+                    className="flex items-center text-gray-600 hover:text-gray-900 mr-4 px-3 py-2 rounded-md hover:bg-gray-100 transition-colors"
+                >
+                    <Home className="h-5 w-5 mr-2" />
+                    Back
+                </button>
+                <h2 className="text-2xl font-semibold text-gray-900">Checkout</h2>
+            </div>
 
-                <div className="flex flex-col lg:flex-row gap-8">
-                    {/* Order Summary Section */}
-                    <div className="lg:w-2/5">
-                        <div className="bg-white rounded-lg shadow p-6">
-                            <div className="flex items-center gap-2 mb-6">
-                                <Package className="w-5 h-5 text-indigo-600" />
-                                <h2 className="text-xl font-semibold">Order Summary</h2>
-                            </div>
-
-                            <div className="space-y-4">
-                                {checkoutItems.map(item => (
-                                    <div key={item.id} className="flex gap-4 py-4 border-b">
-                                        {item.image ? (
-                                            <img
-                                                src={item.image}
-                                                alt={item.name}
-                                                className="w-20 h-20 object-cover rounded-md"
-                                            />
-                                        ) : (
-                                            <div className="w-20 h-20 bg-gray-200 rounded-md flex items-center justify-center">
-                                                <Package className="w-8 h-8 text-gray-400" />
-                                            </div>
-                                        )}
-                                        <div className="flex-1">
-                                            <h3 className="font-medium text-gray-900">{item.name}</h3>
-                                            <p className="text-gray-500">Quantity: {item.quantity}</p>
-                                            <p className="text-indigo-600 font-medium">₹{item.subtotal.toLocaleString()}</p>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-
-                            <div className="mt-6 space-y-2">
-                                <div className="flex justify-between text-gray-600">
-                                    <span>Subtotal</span>
-                                    <span>₹{totalAmount.toLocaleString()}</span>
-                                </div>
-                                <div className="flex justify-between text-gray-600">
-                                    <span>Shipping</span>
-                                    <span>₹199</span>
-                                </div>
-                                <div className="flex justify-between text-lg font-semibold pt-4 border-t">
-                                    <span>Total</span>
-                                    <span>₹{(totalAmount + 499).toLocaleString()}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Delivery Address Form Section */}
+            <div className="flex flex-col lg:flex-row gap-8">
+                {/* Left side - Address Form */}
+                {needsAddress ? (
                     <div className="lg:w-3/5">
                         <div className="bg-white rounded-lg shadow p-6">
                             <div className="flex items-center gap-2 mb-6">
                                 <MapPin className="w-5 h-5 text-indigo-600" />
-                                <h2 className="text-xl font-semibold">Delivery Address</h2>
+                                <h2 className="text-xl font-semibold">Service Address</h2>
                             </div>
 
                             <form onSubmit={handleSubmit} className="space-y-6">
@@ -395,8 +256,64 @@ export default function CheckoutPage() {
                             </form>
                         </div>
                     </div>
+                ) : (
+                    <div className="lg:w-3/5">
+                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+                            <div className="flex items-start">
+                                <MapPin className="h-5 w-5 text-yellow-600 mt-0.5" />
+                                <div className="ml-3">
+                                    <h3 className="text-sm font-medium text-yellow-800">Visit Our Shop</h3>
+                                    <p className="text-sm text-yellow-700 mt-1">
+                                        Please visit our shop at the following address for your {selectedService} service:
+                                    </p>
+                                    <p className="text-sm font-medium text-yellow-900 mt-2">{shopAddress}</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={handleSubmit}
+                                disabled={isLoading}
+                                className="w-full mt-6 flex justify-center items-center gap-2 bg-indigo-600 text-white py-3 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors disabled:bg-indigo-400 disabled:cursor-not-allowed"
+                            >
+                                {isLoading ? (
+                                    <>
+                                        <Loader2 className="w-5 h-5 animate-spin" />
+                                        Processing...
+                                    </>
+                                ) : (
+                                    'Confirm Appointment'
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* Right side - Order Summary */}
+                <div className="lg:w-2/5">
+                    <div className="bg-white rounded-lg shadow p-6">
+                        <h3 className="text-lg font-medium text-gray-900 mb-4">Order Summary</h3>
+                        <div className="space-y-2">
+                            <div className="flex justify-between text-sm">
+                                <span className="text-gray-600">Service Type:</span>
+                                <span className="font-medium text-gray-900 capitalize">{selectedService}</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                                <span className="text-gray-600">Date:</span>
+                                <span className="font-medium text-gray-900">{date}</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                                <span className="text-gray-600">Time:</span>
+                                <span className="font-medium text-gray-900">{time}</span>
+                            </div>
+                            <div className="flex justify-between text-sm border-t pt-2 mt-2">
+                                <span className="text-gray-900 font-medium">Total Amount:</span>
+                                <span className="font-medium text-indigo-600">₹{price}</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    )
-}
+    );
+};
+
+export default ServiceCheckoutPage;

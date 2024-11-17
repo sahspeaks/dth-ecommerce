@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { User, Mail, Phone, MapPin, Edit2, Save, X, Image } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import OrdersSection from './OrdersSection';
+import { useAuth } from '../../context/AuthContext';
+import OrdersSection from './OrdersSection.jsx';
+import ServiceSection from './ServiceSection';
 
 const UserProfile = () => {
     const { user, updateUser } = useAuth();
@@ -156,6 +157,7 @@ const UserProfile = () => {
                 </div>
             </div>
             <OrdersSection customerId={user?._id} />
+            <ServiceSection customerId={user?._id} />
             {/* Account Settings Section */}
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
                 <div className="p-6">
