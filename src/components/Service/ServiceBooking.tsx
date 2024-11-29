@@ -39,7 +39,7 @@ export default function ServiceBooking() {
     const navigate = useNavigate();
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        console.log({ selectedService, date, time, price });
+        // console.log({ selectedService, date, time, price });
         navigate('/service-checkout', {
             state: {
                 selectedService,

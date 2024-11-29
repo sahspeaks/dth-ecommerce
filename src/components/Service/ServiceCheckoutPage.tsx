@@ -1,5 +1,93 @@
+// import React from 'react';
+// import { Home, MapPin, Truck, Loader2 } from 'lucide-react';
+// import { useNavigate, useLocation } from 'react-router-dom';
+// import { useAuth } from '../../context/AuthContext';
+// import { SERVER } from '../../server';
+
+// const ServiceCheckoutPage = () => {
+//     const location = useLocation();
+//     const navigate = useNavigate();
+//     const { selectedService, date, time, price } = location.state || {};
+//     const [isLoading, setIsLoading] = React.useState(false);
+//     const { user } = useAuth();
+//     const BASE_URL = SERVER;
+
+//     const [deliveryAddress, setDeliveryAddress] = React.useState({
+//         fullName: '',
+//         email: '',
+//         phone: '',
+//         doorNo: '',
+//         street: '',
+//         city: '',
+//         state: '',
+//         pincode: '',
+//         landmark: ''
+//     });
+
+//     React.useEffect(() => {
+//         if (!location.state) {
+//             navigate('/');
+//         }
+//     }, [location.state, navigate]);
+
+//     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+//         const { name, value } = e.target;
+//         setDeliveryAddress(prev => ({
+//             ...prev,
+//             [name]: value
+//         }));
+//     };
+
+//     const needsAddress = selectedService === 'installation' || selectedService === 'support';
+//     const shopAddress = "235'A Nethaji Road, Tirupati";
+
+//     const handleSubmit = async (e: React.FormEvent) => {
+//         e.preventDefault();
+//         setIsLoading(true);
+
+//         try {
+//             const orderDetails = {
+//                 service: selectedService,
+//                 date,
+//                 time,
+//                 price,
+//                 customerId: user?._id,
+//                 customerName: user?.username,
+//                 ...(needsAddress ? deliveryAddress : { address: shopAddress })
+//             };
+//             console.log('Order details:', orderDetails);
+//             // Add API call here
+//             const response = await fetch(`${BASE_URL}/api/v1/create-service`, {
+//                 method: "POST",
+//                 headers: {
+//                     'Content-Type': 'application/json',
+//                     'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+//                 },
+//                 body: JSON.stringify(orderDetails)
+//             })
+//             if (!response.ok) {
+//                 throw new Error(`HTTP error! status: ${response.status}`);
+//             }
+//             const data = await response.json();
+//             console.log(data)
+//             //razorpay payment
+
+
+//             // Navigate to success page or show success message
+//             navigate(`/order-confirmation/${data.data.serviceId}`, {
+//                 state: { orderDetails: data }
+//             });
+//         } catch (error) {
+//             console.error('Error processing order:', error);
+//         } finally {
+//             setIsLoading(false);
+//         }
+//     };
+
+//     if (!location.state) return null;
+
 import React from 'react';
-import { Home, MapPin, Truck, Loader2 } from 'lucide-react';
+import { Home, MapPin, Truck, Loader2, AlertCircle } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { SERVER } from '../../server';
@@ -9,6 +97,8 @@ const ServiceCheckoutPage = () => {
     const navigate = useNavigate();
     const { selectedService, date, time, price } = location.state || {};
     const [isLoading, setIsLoading] = React.useState(false);
+    const [error, setError] = React.useState<string | null>(null);
+    const [isRazorpayLoaded, setIsRazorpayLoaded] = React.useState(false);
     const { user } = useAuth();
     const BASE_URL = SERVER;
 
@@ -30,12 +120,59 @@ const ServiceCheckoutPage = () => {
         }
     }, [location.state, navigate]);
 
+    React.useEffect(() => {
+        const loadRazorpay = async () => {
+            if (window.Razorpay) {
+                setIsRazorpayLoaded(true);
+                return;
+            }
+
+            const script = document.createElement('script');
+            script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+            script.async = true;
+            script.onload = () => setIsRazorpayLoaded(true);
+            script.onerror = () => {
+                setError('Failed to load payment gateway. Please try again later.');
+            };
+            document.body.appendChild(script);
+        };
+
+        loadRazorpay();
+
+        return () => {
+            const script = document.querySelector('script[src="https://checkout.razorpay.com/v1/checkout.js"]');
+            if (script) {
+                document.body.removeChild(script);
+            }
+        };
+    }, []);
+
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
+        setError(null);
         setDeliveryAddress(prev => ({
             ...prev,
             [name]: value
         }));
+    };
+
+    const validateForm = () => {
+        if (!/^\d{10}$/.test(deliveryAddress.phone)) {
+            setError('Please enter a valid 10-digit phone number');
+            return false;
+        }
+
+        if (!/^\d{6}$/.test(deliveryAddress.pincode)) {
+            setError('Please enter a valid 6-digit PIN code');
+            return false;
+        }
+
+        if (!/\S+@\S+\.\S+/.test(deliveryAddress.email)) {
+            setError('Please enter a valid email address');
+            return false;
+        }
+
+        return true;
     };
 
     const needsAddress = selectedService === 'installation' || selectedService === 'support';
@@ -43,10 +180,21 @@ const ServiceCheckoutPage = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setError(null);
+
+        if (needsAddress && !validateForm()) {
+            return;
+        }
+
+        if (!isRazorpayLoaded) {
+            setError('Payment system is still loading. Please try again in a moment.');
+            return;
+        }
+
         setIsLoading(true);
 
         try {
-            const orderDetails = {
+            const serviceDetails = {
                 service: selectedService,
                 date,
                 time,
@@ -55,27 +203,83 @@ const ServiceCheckoutPage = () => {
                 customerName: user?.username,
                 ...(needsAddress ? deliveryAddress : { address: shopAddress })
             };
-            console.log('Order details:', orderDetails);
-            // Add API call here
+
             const response = await fetch(`${BASE_URL}/api/v1/create-service`, {
                 method: "POST",
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
                 },
-                body: JSON.stringify(orderDetails)
-            })
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const data = await response.json();
-            console.log(data)
-            // Navigate to success page or show success message
-            navigate(`/order-confirmation/${data.data.serviceId}`, {
-                state: { orderDetails: data }
+                body: JSON.stringify(serviceDetails)
             });
-        } catch (error) {
-            console.error('Error processing order:', error);
+
+            if (!response.ok) {
+                throw new Error('Failed to create service order');
+            }
+
+            const data = await response.json();
+
+            try {
+                const options = {
+                    key: "rzp_test_Slq72fvAZ1MoLJ",
+                    amount: price * 100, // Convert to paise
+                    currency: "INR",
+                    name: "MY STB",
+                    description: `${selectedService} Service Payment`,
+                    image: "",
+                    order_id: data.razorpayOrderId,
+                    handler: async function (response: any) {
+                        try {
+                            const paymentCompleteResponse = await fetch(
+                                `${BASE_URL}/api/v1/service-payment`,
+                                {
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/json",
+                                        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+                                    },
+                                    body: JSON.stringify({
+                                        serviceId: data.data.serviceId,
+                                        paymentId: response.razorpay_payment_id,
+                                        razorpayOrderId: data.razorpayOrderId,
+                                    }),
+                                }
+                            );
+
+                            if (!paymentCompleteResponse.ok) {
+                                throw new Error('Failed to verify payment');
+                            }
+
+                            const paymentData = await paymentCompleteResponse.json();
+                            navigate(`/order-confirmation/${data.data.serviceId}`, {
+                                state: { orderDetails: paymentData }
+                            });
+                        } catch (error) {
+                            setError('Payment verification failed. Please contact support.');
+                        }
+                    },
+                    prefill: {
+                        name: needsAddress ? deliveryAddress.fullName : user?.username,
+                        email: needsAddress ? deliveryAddress.email : user?.email,
+                        contact: needsAddress ? deliveryAddress.phone : '',
+                    },
+                    notes: {
+                        address: needsAddress
+                            ? `${deliveryAddress.doorNo}, ${deliveryAddress.street}, ${deliveryAddress.city}, ${deliveryAddress.state}, ${deliveryAddress.pincode}`
+                            : shopAddress,
+                    },
+                    theme: { color: "#4F46E5", background_color: "#ffffff" },
+                    modal: { backdropclose: false, escape: false },
+                };
+
+                const razorpayInstance = new window.Razorpay(options);
+                razorpayInstance.open();
+            } catch (error) {
+                setError('Failed to initialize payment. Please try again.');
+                console.error('Razorpay initialization error:', error);
+            }
+        } catch (error: any) {
+            setError(error.message || 'An error occurred. Please try again.');
         } finally {
             setIsLoading(false);
         }
